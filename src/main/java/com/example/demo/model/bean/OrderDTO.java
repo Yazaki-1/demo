@@ -1,10 +1,13 @@
 package com.example.demo.model.bean;
 
-import lombok.Builder;
 import lombok.Data;
 
 @Data
-@Builder
 public class OrderDTO {
-
+    private String orderNo;
+    private String status;
+    private String productId;
+    private String ProductName;
+    private String subject;
+    private String productPrice;
 }

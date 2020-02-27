@@ -36,5 +36,5 @@ public class SystemCoupon {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime creationTime;
     //状态
-    private Integer status;
+    private String status;
 }

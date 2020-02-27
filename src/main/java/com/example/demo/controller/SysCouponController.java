@@ -1,14 +1,13 @@
 package com.example.demo.controller;
 
-import com.example.demo.model.para.SysCouponParaOne;
+import com.example.demo.model.SystemCoupon;
+import com.example.demo.model.bean.SysCouponInfo;
 import com.example.demo.service.SysCouponService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping("/coupon")
@@ -17,9 +16,19 @@ public class SysCouponController {
     @Resource
     SysCouponService sysCouponService;
 
-    @PostMapping
-    Object create(@Valid @RequestBody SysCouponParaOne para){
+    @PostMapping("/create")
+    public Object create(@Valid @RequestBody SysCouponInfo para){
         return sysCouponService.creatCoupon(para);
+    }
+
+    @GetMapping("/allCoupon")
+    public List<SystemCoupon> allCoupon(){
+        return sysCouponService.findAll();
+    }
+
+    @GetMapping("/findStatus")
+    public List<SystemCoupon> findByStatus(String status){
+        return sysCouponService.findByStatus(status);
     }
 
 

@@ -14,10 +14,6 @@ public class OrderController {
     @Resource
     OrderService orderService;
 
-    @PostMapping("/createOrder")
-    Object createOrder(@RequestBody Order order){
-        return orderService.createOrder(order);
-    }
 
     @GetMapping("/findAll")
     public List<Order> findAllOrders(){
@@ -34,14 +30,27 @@ public class OrderController {
         return orderService.findByOrderNo(orderNo);
     }
 
-    @PutMapping("/updateOrder")
-    public long updateOrder(@RequestParam(value = "orderNo") String orderNo , @RequestParam(value = "payment") String payment){
-        return orderService.updateOrder(orderNo , payment);
-    }
+//    /**
+//     * 修改订单
+//     * @param orderNo
+//     * @param payment
+//     * @return
+//     */
+//    @PutMapping("/updateOrder")
+//    public long updateOrder(@RequestParam(value = "orderNo") String orderNo , @RequestParam(value = "payment") String payment){
+//        return orderService.updateOrder(orderNo , payment);
+//    }
 
+    /**
+     * 订单号模糊搜索
+     * @param likeNo
+     * @return
+     */
     @GetMapping("/findLike")
     public List<Order> findOrderNoLike(@RequestParam(value = "likeNo") String likeNo){
         return orderService.findByOrderNoLike(likeNo);
     }
+
+
 
 }

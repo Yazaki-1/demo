@@ -38,77 +38,11 @@ public class AliPayController {
     @Autowired
     private AliPayProperties aliPayProperties;
 
-    @PostMapping("/precreate")
-    public void precreate(HttpServletRequest request , HttpServletResponse response) throws Exception{
-        //模拟订单 全部写死 要修改
-        //订单号
-        String outTradeNo = UUID.randomUUID().toString();
-        //订单标题
-        String subject = "test";
-        //订单描述
-        String body = "购买一件一共15.55元";
-        // (必填) 订单总金额，单位为元，不能超过1亿元
-        String totalAmount = "23.33";
-        // 卖家支付宝账号ID，用于支持一个签约账号下支持打款到不同的收款账号，(打款到sellerId对应的支付宝账号)
-        // 如果该字段为空，则默认为与支付宝签约的商户的PID，也就是appid对应的PID
-        String sellerId = "";
-        // (必填) 商户门店编号，通过门店号和商家后台可以配置精准到门店的折扣信息，详询支付宝技术支持
-        String storeId = "test_store_id";
-        // 商户操作员编号，添加此参数可以为商户操作员做销售统计
-        String operatorId = "test_operator_id";
-
-        //写死的商品
-        List<GoodsDetail> goodsDetails = new ArrayList<>();
-        GoodsDetail goods1 = GoodsDetail.newInstance("goods_id001", "全麦小面包", 1, 1);
-        goodsDetails.add(goods1);
-        GoodsDetail goods2 = GoodsDetail.newInstance("goods_id002", "黑人牙刷", 1, 2);
-        goodsDetails.add(goods2);
-
-        //支付超时时间定义为5min
-        String timeoutExpress = "5m";
-        AlipayTradePrecreateRequestBuilder builder =new AlipayTradePrecreateRequestBuilder()
-                .setSubject(subject)
-                .setTotalAmount(totalAmount)
-                .setOutTradeNo(outTradeNo)
-                .setSellerId(sellerId)
-                .setBody(body)
-                .setOperatorId(operatorId)
-                .setStoreId(storeId)
-                .setTimeoutExpress(timeoutExpress)
-                //支付宝服务器主动通知商户服务器里指定的页面http路径,根据需要设置
-                .setNotifyUrl(aliPayProperties.getNotifyUrl())
-                .setGoodsDetailList(goodsDetails);
-
-        AlipayF2FPrecreateResult result = alipayTradeService.tradePrecreate(builder);
-        String qrCodeUrl = null;
-        switch (result.getTradeStatus()) {
-            case SUCCESS:
-                log.info("支付宝预下单成功: )");
-
-                AlipayTradePrecreateResponse res = result.getResponse();
-                BufferedImage image = PayUtil.getQRCodeImge(res.getQrCode());
-
-                response.setContentType("image/jpeg");
-                response.setHeader("Pragma","no-cache");
-                response.setHeader("Cache-Control","no-cache");
-                response.setIntHeader("Expires",-1);
-                ImageIO.write(image, "JPEG", response.getOutputStream());
-                break;
-
-            case FAILED:
-                log.error("支付宝预下单失败!!!");
-                break;
-
-            case UNKNOWN:
-                log.error("系统异常，预下单状态未知!!!");
-                break;
-
-            default:
-                log.error("不支持的交易状态，交易返回异常!!!");
-                break;
-        }
-    }
-
+    /**
+     * 订单查询（查询支付状态
+     * @param orderNo
+     * @return
+     */
     @GetMapping("/query")
     public String query(String orderNo){
 

@@ -1,5 +1,5 @@
 package com.example.demo.model;
-
+//
 //import lombok.Data;
 //
 //import javax.persistence.Entity;
@@ -9,12 +9,12 @@ package com.example.demo.model;
 //
 //@Entity
 //@Data
-public class Product {
+//public class Product {
 //
 //    @Id
 //    @GeneratedValue(strategy = GenerationType.IDENTITY)
 //    private Long id;
 //    private String productName;
 //    private String productPrice;
-
-}
+//
+//}
