@@ -2,7 +2,7 @@ package com.example.demo.service.impl;
 
 import com.example.demo.model.QSystemCoupon;
 import com.example.demo.model.SystemCoupon;
-import com.example.demo.model.bean.SysCouponInfo;
+import com.example.demo.model.bean.SysCouponDTO;
 import com.example.demo.repository.SysCouponRepository;
 import com.example.demo.service.SysCouponService;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -26,7 +26,12 @@ public class SysCouponServiceImpl implements SysCouponService {
     @Autowired
     JPAQueryFactory jpaQueryFactory;
 
-    public Object creatCoupon(@Valid @RequestBody SysCouponInfo para) {
+    /**
+     * 生成初始系统优惠券
+     * @param para
+     * @return
+     */
+    public Object creatCoupon(@Valid @RequestBody SysCouponDTO para) {
 
         SystemCoupon systemCoupon = new SystemCoupon();
         BeanUtils.copyProperties(para , systemCoupon);

@@ -1,7 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.model.SystemCoupon;
-import com.example.demo.model.bean.SysCouponInfo;
+import com.example.demo.model.bean.SysCouponDTO;
 import com.example.demo.service.SysCouponService;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +17,7 @@ public class SysCouponController {
     SysCouponService sysCouponService;
 
     @PostMapping("/create")
-    public Object create(@Valid @RequestBody SysCouponInfo para){
+    public Object create(@Valid @RequestBody SysCouponDTO para){
         return sysCouponService.creatCoupon(para);
     }
 

@@ -13,19 +13,27 @@ import com.example.demo.repository.OrderRepository;
 import com.example.demo.service.OrderService;
 import com.example.demo.util.PayUtil;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.servlet.function.ServerResponse;
 
 import javax.annotation.Resource;
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.awt.image.BufferedImage;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -40,29 +48,20 @@ public class OrderServiceImpl implements OrderService {
     private AlipayTradeService alipayTradeService;
     @Autowired
     private AliPayProperties aliPayProperties;
-    /**
-     * 创建订单
-     *
-     * @param orderDTO
-     */
-    public Object createOrder(@Valid @RequestBody OrderDTO orderDTO) {
-        Order order = new Order();
-        return null;
-    }
 
 //    /**
 //     * 修改订单
-//     *
 //     * @param orderNo
-//     * @param payment
+//     * @param status
 //     * @return
 //     */
 //    @Transactional
-//    public long updateOrder(String orderNo, String payment) {
+//    @Modifying
+//    public long updateOrder(String orderNo, String status) {
 //        QOrder order = QOrder.order;
 //        return jpaQueryFactory
 //                .update(order)
-//                .set(order.payment, payment)
+//                .set(order.status , status)
 //                .where(order.orderNo.eq(orderNo))
 //                .execute();
 //    }
@@ -79,15 +78,6 @@ public class OrderServiceImpl implements OrderService {
                 .orderBy(order.createTime.asc())
                 .fetch();
     }
-
-//    public QueryResults<Order> findAllPage(Pageable pageable){
-//        QOrder order = QOrder.order;
-//        return jpaQueryFactory
-//                .selectFrom(order)
-//                .orderBy(order.createTime.asc())
-//                .offset(pageable.getNumberOfPages())
-//                .limit(pageable.getOffset)
-//    }
 
 //    /**
 //     * 根据生成订单的时间进行查询
@@ -149,12 +139,13 @@ public class OrderServiceImpl implements OrderService {
 
     public void pay(@Valid @RequestBody OrderDTO orderDTO , HttpServletResponse response) throws Exception{
 
+        Order order = new Order();
         //订单号
         String outTradeNo = orderDTO.getOrderNo();
         //订单标题
         String subject = orderDTO.getSubject();
         // (必填) 订单总金额，单位为元，不能超过1亿元
-        String totalAmount = orderDTO.getProductPrice();
+        String totalAmount = orderDTO.getProductPrice().toString();
         //订单描述
         String body = new StringBuilder().append("订单").append(orderDTO.getOrderNo()).append("一共").append(totalAmount).append("元").toString();
         // 卖家支付宝账号ID，用于支持一个签约账号下支持打款到不同的收款账号，(打款到sellerId对应的支付宝账号)
@@ -167,7 +158,7 @@ public class OrderServiceImpl implements OrderService {
 
         //商品List
         List<GoodsDetail> goodsDetails = new ArrayList<>();
-        GoodsDetail goods = GoodsDetail.newInstance(orderDTO.getProductId(), orderDTO.getProductName(), Long.valueOf(orderDTO.getProductPrice()), 1);
+        GoodsDetail goods = GoodsDetail.newInstance(orderDTO.getProductId(), orderDTO.getProductName(), orderDTO.getProductPrice().longValue(), 1);
         goodsDetails.add(goods);
         //支付超时时间定义为5min
         String timeoutExpress = "5m";
@@ -190,12 +181,17 @@ public class OrderServiceImpl implements OrderService {
             case SUCCESS:
                 log.info("支付宝预下单成功: )");
 
+                order.setStatus("未支付");
+                order.setCreateTime(LocalDateTime.now());
+                BeanUtils.copyProperties(orderDTO , order);
+                orderRepository.save(order);
+
                 AlipayTradePrecreateResponse res = result.getResponse();
                 BufferedImage image = PayUtil.getQRCodeImge(res.getQrCode());
 
                 response.setContentType("image/jpeg");
                 response.setHeader("Pragma", "no-cache");
-                response.setHeader("Cache-Control", "no-cache");
+                response.setHeader("Cache-Control", "no-ca che");
                 response.setIntHeader("Expires", -1);
                 ImageIO.write(image, "JPEG", response.getOutputStream());
                 break;
@@ -210,4 +206,35 @@ public class OrderServiceImpl implements OrderService {
                 log.error("不支持的交易状态，交易返回异常!!!");
         }
     }
+
+
+    public String AliCallback(Map<String , String> params){
+        String orderNo = params.get("out_trade_no");
+        String tradeStatus = params.get("trade_status");
+        Order order = findByOrderNo(orderNo);
+        if (orderNo == null) {
+            return ServerResponse.badRequest().body("非正确订单，回调忽略").toString();
+        }
+        if(AliPayCallback.TRADE_STATUS_TRADE_SUCCESS.equals(tradeStatus)){
+            order.setPaymentTime(strToDate(params.get("gmt_payment")));
+            order.setStatus("已支付");
+        }else{
+            order.setStatus("支付失败");
+        }
+        orderRepository.save(order);
+        return "ok";
+    }
+
+    public interface AliPayCallback{
+        String TRADE_STATUS_WAIT_BUYER_PAY = "WAIT_BUYER_PAY";
+        String TRADE_STATUS_TRADE_SUCCESS = "TRADE_SUCCESS";
+    }
+
+    public static final String STANDARD_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    public static Date strToDate(String dateTimeStr){
+        DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern(STANDARD_FORMAT);
+        DateTime dateTime = dateTimeFormatter.parseDateTime(dateTimeStr);
+        return dateTime.toDate();
+    }
+
 }

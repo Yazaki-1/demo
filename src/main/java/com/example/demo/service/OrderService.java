@@ -7,7 +7,7 @@ import com.example.demo.model.bean.OrderDTO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
-
+import java.util.Map;
 
 
 public interface OrderService {
@@ -17,4 +17,6 @@ public interface OrderService {
     Order findByOrderNo(String OrderNo);
     List<Order> findByOrderNoLike(String likeNo);
     void pay(OrderDTO orderDTO , HttpServletResponse response) throws Exception;
+    String AliCallback(Map<String , String> params);
+//    long updateOrder(String orderNo, String status);
 }

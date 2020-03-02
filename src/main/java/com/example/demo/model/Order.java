@@ -5,6 +5,7 @@ import lombok.Data;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Entity
 @Data
@@ -20,7 +21,7 @@ public class Order {
     private String subject;
 //    private String userId;
     //支付金额
-    private String ProductPrice;
+    private Double ProductPrice;
 //    //支付类型
 //    private Integer paymentType;
 //    //折扣
@@ -28,11 +29,11 @@ public class Order {
     //状态
     private String status;
     //创建时间
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     private LocalDateTime createTime;
     //支付时间
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime paymentTime;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
+    private Date paymentTime;
 //    //对应设备id
 //    private String equipmentId;
 

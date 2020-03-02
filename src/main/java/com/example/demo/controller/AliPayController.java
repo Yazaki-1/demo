@@ -2,18 +2,15 @@ package com.example.demo.controller;
 
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.internal.util.AlipaySignature;
-import com.alipay.api.response.AlipayTradePrecreateResponse;
 import com.alipay.api.response.AlipayTradeQueryResponse;
-import com.alipay.demo.trade.model.GoodsDetail;
-import com.alipay.demo.trade.model.builder.AlipayTradePrecreateRequestBuilder;
 import com.alipay.demo.trade.model.builder.AlipayTradeQueryRequestBuilder;
 import com.alipay.demo.trade.model.builder.AlipayTradeRefundRequestBuilder;
-import com.alipay.demo.trade.model.result.AlipayF2FPrecreateResult;
 import com.alipay.demo.trade.model.result.AlipayF2FQueryResult;
 import com.alipay.demo.trade.model.result.AlipayF2FRefundResult;
 import com.alipay.demo.trade.service.AlipayTradeService;
+import com.example.demo.model.Order;
 import com.example.demo.properties.AliPayProperties;
-import com.example.demo.util.PayUtil;
+import com.example.demo.service.OrderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,10 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.awt.image.BufferedImage;
 import java.util.*;
 
 @Slf4j
@@ -34,6 +28,8 @@ public class AliPayController {
 
     @Autowired
     private AlipayTradeService alipayTradeService;
+    @Autowired
+    private OrderService orderService;
 
     @Autowired
     private AliPayProperties aliPayProperties;
@@ -80,9 +76,12 @@ public class AliPayController {
      */
     @PostMapping("/refund")
     public String refund(String orderNo){
+
+        Order order = orderService.findByOrderNo(orderNo);
+
         AlipayTradeRefundRequestBuilder builder = new AlipayTradeRefundRequestBuilder()
-                .setOutTradeNo(orderNo)
-                .setRefundAmount("0.01")
+                .setOutTradeNo(order.getOrderNo())
+                .setRefundAmount(order.getProductPrice().toString())
                 .setRefundReason("当面付退款测试")
                 .setOutRequestNo(String.valueOf(System.nanoTime()))
                 .setStoreId("A1");
@@ -153,7 +152,10 @@ public class AliPayController {
              * 在支付宝的业务通知中，只有交易通知状态为TRADE_SUCCESS或TRADE_FINISHED时，支付宝才会认定为买家付款成功。
              */
 
-            return "success";
+            String string = orderService.AliCallback(params);
+            if(string.equals("ok")){
+                return "success";
+            }
         }
 
         return null;

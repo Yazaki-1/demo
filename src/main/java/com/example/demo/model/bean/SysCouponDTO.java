@@ -8,7 +8,7 @@ import javax.validation.constraints.NotNull;
 
 @Getter
 @Setter
-public class SysCouponInfo {
+public class SysCouponDTO {
 
     //券name
     @NotBlank
